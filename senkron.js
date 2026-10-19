@@ -151,6 +151,7 @@ async function senkronize() {
     bulutDurum('tamam');
   } catch (e) {
     console.warn('Eşitleme hatası:', e);
+    bulutHata = hataAciklama(e);
     bulutDurum(navigator.onLine === false ? 'cevrimdisi' : 'hata');
   } finally {
     senkronCalisiyor = false;
@@ -175,6 +176,15 @@ const BULUT_YAZI = {
   cevrimdisi: '📴 İnternet yok',
 };
 let bulutSonDurum = 'kapali';
+let bulutHata = '';
+
+function hataAciklama(e) {
+  const kod = Number(String(e?.message).match(/\d{3}/)?.[0]);
+  if (kod === 401) return 'Anahtar geçersiz ya da süresi dolmuş. Yeni anahtar oluşturup tekrar bağlan.';
+  if (kod === 403 || kod === 404) return 'Anahtarın veri deposuna izni yok. “taj-burs-veri” seçili ve “Contents: Read and write” olmalı.';
+  if (e instanceof TypeError) return 'GitHub’a ulaşılamadı. İnternet bağlantını kontrol et.';
+  return `Beklenmeyen hata: ${e?.message || e}`;
+}
 
 function bulutDurum(d) {
   bulutSonDurum = d;
@@ -192,7 +202,7 @@ function bulutDialogCiz() {
     const yazi = {
       tamam: sonSenkron ? `Son kayıt: ${new Date(sonSenkron).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}` : '',
       calisiyor: 'Şu an kaydediliyor…',
-      hata: 'Son denemede kaydedilemedi. Biraz sonra tekrar denenecek.',
+      hata: `Kaydedilemedi — ${bulutHata}`,
       cevrimdisi: 'İnternet yok — bağlantı gelince otomatik kaydedilecek.',
     };
     $('#bulutSon').textContent = yazi[bulutSonDurum] || '';
@@ -214,10 +224,14 @@ $('#bulutForm').addEventListener('submit', async (e) => {
   $('#bulutHata').textContent = 'Kontrol ediliyor…';
   try {
     const r = await gh('', { token: t });
-    const j = r.ok ? await r.json() : null;
-    if (!j?.permissions?.push) throw new Error();
-  } catch {
-    $('#bulutHata').textContent = 'Bu anahtar veri deposuna yazamıyor. Anahtarı ve izinleri kontrol et.';
+    if (!r.ok) throw new Error(`erişim ${r.status}`);
+    // Bazı anahtar türlerinde izin bilgisi gelmez; geldiyse ve yazma yoksa reddet
+    const j = await r.json();
+    if (j.permissions && !j.permissions.push) throw new Error('erişim 403');
+  } catch (err) {
+    $('#bulutHata').textContent = err instanceof TypeError
+      ? 'GitHub’a ulaşılamadı. İnternet bağlantını kontrol et.'
+      : 'Bu anahtar veri deposuna yazamıyor. “taj-burs-veri” seçili ve “Contents: Read and write” olmalı.';
     return;
   }
   tokenYaz(t);
