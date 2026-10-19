@@ -229,9 +229,12 @@ $('#bulutForm').addEventListener('submit', async (e) => {
     const j = await r.json();
     if (j.permissions && !j.permissions.push) throw new Error('erişim 403');
   } catch (err) {
-    $('#bulutHata').textContent = err instanceof TypeError
-      ? 'GitHub’a ulaşılamadı. İnternet bağlantını kontrol et.'
-      : 'Bu anahtar veri deposuna yazamıyor. “taj-burs-veri” seçili ve “Contents: Read and write” olmalı.';
+    const kod = Number(String(err?.message).match(/\d{3}/)?.[0]);
+    $('#bulutHata').textContent =
+      err instanceof TypeError ? 'GitHub’a ulaşılamadı. İnternet bağlantını kontrol et.'
+      : kod === 401 ? 'GitHub bu anahtarı tanımadı (hata 401). Anahtar eksik/yanlış kopyalanmış olabilir — tamamını yeniden kopyalayıp yapıştır.'
+      : kod === 404 ? 'Anahtar “taj-burs-veri” deposunu göremiyor (hata 404). Anahtarın ayarlarında “Only select repositories” seçip taj-burs-veri’yi eklemelisin.'
+      : `Anahtarın veri deposuna yazma izni yok (hata ${kod || '?'}). “Contents” izni “Read and write” olmalı.`;
     return;
   }
   tokenYaz(t);
