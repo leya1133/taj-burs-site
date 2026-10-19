@@ -25,23 +25,32 @@ function hepsi(depo) {
   });
 }
 
-function yaz(depo, kayit) {
+// uzaktan: buluttan gelen kayıt — zaman damgası değişmez, yeniden buluta gönderilmez
+function yaz(depo, kayit, { uzaktan = false } = {}) {
+  if (!uzaktan) kayit.guncelleme = Date.now();
   return new Promise((res, rej) => {
     const t = db.transaction(depo, 'readwrite');
     t.objectStore(depo).put(kayit);
-    t.oncomplete = res;
+    t.oncomplete = () => { if (!uzaktan) degisiklikOldu(); res(); };
     t.onerror = () => rej(t.error);
   });
 }
 
-function sil(depo, id) {
+function sil(depo, id, { uzaktan = false } = {}) {
+  if (!uzaktan) silinenEkle(depo, id);
   return new Promise((res, rej) => {
     const t = db.transaction(depo, 'readwrite');
     t.objectStore(depo).delete(id);
-    t.oncomplete = res;
+    t.oncomplete = () => { if (!uzaktan) degisiklikOldu(); res(); };
     t.onerror = () => rej(t.error);
   });
 }
+
+// Silinen kayıtlar diğer cihazlardan da silinsin diye hatırlanır
+function silinenleriOku() { try { return JSON.parse(localStorage.getItem('silinenler') || '{}'); } catch { return {}; } }
+function silinenleriYaz(s) { try { localStorage.setItem('silinenler', JSON.stringify(s)); } catch {} }
+function silinenEkle(depo, id) { const s = silinenleriOku(); s[`${depo}:${id}`] = Date.now(); silinenleriYaz(s); }
+function degisiklikOldu() { if (typeof senkronPlanla === 'function') senkronPlanla(); }
 
 function temizle(depo) {
   return new Promise((res, rej) => {
@@ -108,6 +117,7 @@ let gorevler = [];
 let ulkeler = [];
 let cumleler = [];
 let acikUlke = null; // Ülkeler sekmesinde açık klasör
+let uygulamaHazir = false; // veriler yüklendi mi (senkron.js bunu bekler)
 let gosterilenHafta = haftaBasi(new Date());
 let gosterilenGun = new Date();
 let duzenlenenId = null;
@@ -510,6 +520,9 @@ form.addEventListener('submit', async (e) => {
     sonTarih: form.sonTarih.value,
     durum: form.durum.value,
     foto: bekleyenFoto === undefined ? (eski?.foto ?? null) : bekleyenFoto,
+    // Fotoğraf buluta ayrı dosya olarak gider; sürüm sadece fotoğraf değişince artar
+    fotoVar: bekleyenFoto === undefined ? !!eski?.fotoVar : !!bekleyenFoto,
+    fotoSurum: bekleyenFoto === undefined ? (eski?.fotoSurum ?? 0) : Date.now(),
     haftalar: [...haftalar],
   };
   await yaz('burslar', kayit);
@@ -674,6 +687,15 @@ $('#iceAktar').addEventListener('change', async (e) => {
     const yedekUlkeler = Array.isArray(veri.ulkeler) ? veri.ulkeler
       : [...new Set(veri.burslar.map((b) => b.ulke).filter(Boolean))].map((ad) => ({ ad, olusturma: Date.now() }));
     const yedekCumleler = Array.isArray(veri.cumleler) ? veri.cumleler : [];
+    veri.burslar.forEach(fotoGoc);
+    // Yedekte olmayan mevcut kayıtlar diğer cihazlardan da silinsin
+    const yeniler = { burslar: veri.burslar, gorevler: veri.gorevler, ulkeler: yedekUlkeler, cumleler: yedekCumleler };
+    const mevcut = { burslar, gorevler, ulkeler, cumleler };
+    for (const depo of Object.keys(yeniler)) {
+      const anahtar = depo === 'ulkeler' ? 'ad' : 'id';
+      const kalan = new Set(yeniler[depo].map((k) => k[anahtar]));
+      for (const k of mevcut[depo]) if (!kalan.has(k[anahtar])) silinenEkle(depo, k[anahtar]);
+    }
     await temizle('burslar'); await temizle('gorevler'); await temizle('ulkeler'); await temizle('cumleler');
     for (const b of veri.burslar) await yaz('burslar', b);
     for (const g of veri.gorevler) await yaz('gorevler', g);
@@ -688,6 +710,11 @@ $('#iceAktar').addEventListener('change', async (e) => {
     e.target.value = '';
   }
 });
+
+// Bulut eşitlemeden önce eklenmiş fotoğraflı burslara fotoğraf bilgisi ekle
+function fotoGoc(b) {
+  if (b.fotoVar === undefined) { b.fotoVar = !!b.foto; b.fotoSurum = b.foto ? 1 : 0; }
+}
 
 // ---------- Başlat ----------
 (async () => {
@@ -706,6 +733,10 @@ $('#iceAktar').addEventListener('change', async (e) => {
 
   db = await dbAc();
   [burslar, gorevler, ulkeler, cumleler] = await Promise.all([hepsi('burslar'), hepsi('gorevler'), hepsi('ulkeler'), hepsi('cumleler')]);
+  burslar.forEach(fotoGoc);
   hepsiniCiz();
   selamGoster();
+  // senkron.js henüz yüklenmediyse, yüklenince kendisi başlatır
+  uygulamaHazir = true;
+  if (typeof senkronBaslat === 'function') senkronBaslat();
 })();

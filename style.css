@@ -281,6 +281,17 @@ button.cip:hover { background: #fff; }
 .soz { font-style: italic; color: var(--soluk); margin: 0 0 22px; }
 .selam .btn { font-size: 16px; padding: 11px 22px; }
 
+/* ---------- Bulut ---------- */
+.bulut-btn[data-durum="kapali"] { border-color: var(--ana); color: var(--ana); }
+.bulut-btn[data-durum="hata"] { border-color: var(--tehlike); color: var(--tehlike); }
+.bulut-ic { padding: 24px; display: flex; flex-direction: column; gap: 12px; }
+.bulut-ic h2 { font-size: 20px; }
+.bulut-ic h3 { font-size: 15px; margin-top: 8px; }
+.bulut-ic p { margin: 0; }
+.bulut-ic hr { border: 0; border-top: 1px solid var(--cizgi); width: 100%; margin: 4px 0; }
+#bulutBagli, #bulutForm { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+#bulutForm input { width: 100%; font-family: ui-monospace, Consolas, monospace; font-size: 13px; }
+
 /* ---------- Alt bilgi ---------- */
 .alt { max-width: 1160px; margin: 0 auto; padding: 18px 16px 28px; border-top: 1px solid var(--cizgi); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 #yedekDurum.uyari { color: var(--tehlike); font-weight: 600; }

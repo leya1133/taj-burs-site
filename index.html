@@ -22,6 +22,7 @@
         <button class="sekme" data-sekme="haftalik">Haftalık</button>
         <button class="sekme" data-sekme="gunluk">Günlük Görevler</button>
       </nav>
+      <button class="btn kucuk bulut-btn" id="bulutBtn" data-durum="kapali">☁️ Buluta bağla</button>
     </div>
   </header>
 
@@ -159,6 +160,30 @@
     </form>
   </dialog>
 
+  <!-- BULUT -->
+  <dialog id="bulutDialog">
+    <div class="bulut-ic">
+      <h2>☁️ Bulut kaydı</h2>
+      <div id="bulutBagli">
+        <p>Bu cihaz bağlı. Veriler GitHub'daki gizli <b>taj-burs-veri</b> deposuna kaydediliyor ve bağlı tüm cihazlarda görünüyor.</p>
+        <p class="soluk" id="bulutSon"></p>
+        <button class="btn" id="simdiEsitle">🔄 Şimdi eşitle</button>
+        <h3>Telefonu / başka cihazı bağla</h3>
+        <p class="soluk">Bu linki kendine gönder (ör. WhatsApp'tan) ve telefonda aç — telefon otomatik bağlanır. Linki başkasıyla paylaşma.</p>
+        <button class="btn ana" id="linkKopyala">🔗 Bağlantı linkini kopyala</button>
+        <hr>
+        <button class="btn kucuk tehlike" id="bagKes">Bu cihazın bağlantısını kes</button>
+      </div>
+      <form id="bulutForm">
+        <p>Verilerin telefonda ve bilgisayarda aynı görünmesi için bu cihazı bir kere buluta bağla. GitHub anahtarını (token) yapıştır:</p>
+        <input id="tokenGir" placeholder="github_pat_…" autocomplete="off" spellcheck="false">
+        <button class="btn ana">Bağlan</button>
+        <small id="bulutHata" class="foto-mesaj"></small>
+      </form>
+      <div class="dialog-alt"><button type="button" class="btn" id="bulutKapat">Kapat</button></div>
+    </div>
+  </dialog>
+
   <div id="bildirim" class="bildirim" hidden></div>
 
   <!-- SABAH KARŞILAMA -->
@@ -174,5 +199,6 @@
   </div>
 
   <script src="app.js"></script>
+  <script src="senkron.js"></script>
 </body>
 </html>
