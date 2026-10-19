@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Burs Takip</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="ust">
+    <div class="ust-ic">
+      <div class="marka">
+        <span class="marka-isaret">🎓</span>
+        <div><h1>Burs Takip</h1><small>Başvurular, ülkeler ve günlük işler</small></div>
+      </div>
+      <nav class="sekmeler" role="tablist">
+        <button class="sekme aktif" data-sekme="burslar">Burslar</button>
+        <button class="sekme" data-sekme="ulkeler">Ülkeler</button>
+        <button class="sekme" data-sekme="haftalik">Haftalık</button>
+        <button class="sekme" data-sekme="gunluk">Günlük Görevler</button>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- BURSLAR -->
+    <section id="burslar" class="panel aktif">
+      <div id="ozet" class="ozet"></div>
+      <div class="panel-bas">
+        <h2>Tüm Burslar</h2>
+        <div class="araclar">
+          <input id="ara" type="search" placeholder="Burs ara…">
+          <select id="ulkeFiltre"></select>
+          <select id="durumFiltre">
+            <option value="">Tüm durumlar</option>
+          </select>
+          <button class="btn ana" id="yeniBurs">+ Burs Ekle</button>
+        </div>
+      </div>
+      <div id="bursListe" class="kartlar"></div>
+    </section>
+
+    <!-- ÜLKELER -->
+    <section id="ulkeler" class="panel">
+      <div class="panel-bas">
+        <div class="baslik-satir">
+          <button class="btn" id="ulkeGeri" hidden>← Ülkeler</button>
+          <h2 id="ulkeBaslik">Ülkeler</h2>
+        </div>
+        <div class="araclar">
+          <button class="btn tehlike" id="ulkeSil" hidden>Klasörü sil</button>
+          <button class="btn" id="yeniUlke">+ Ülke Ekle</button>
+          <button class="btn ana" id="ulkeyeBurs">+ Burs Ekle</button>
+        </div>
+      </div>
+      <div id="ulkeIcerik"></div>
+    </section>
+
+    <!-- HAFTALIK -->
+    <section id="haftalik" class="panel">
+      <div class="panel-bas">
+        <h2>Haftalık Burslar</h2>
+        <div class="gezgin">
+          <button class="btn" id="oncekiHafta">‹</button>
+          <span id="haftaEtiket"></span>
+          <button class="btn" id="sonrakiHafta">›</button>
+          <button class="btn" id="buHafta">Bu hafta</button>
+        </div>
+      </div>
+      <div class="ekle-satir">
+        <select id="haftayaEkleSec"><option value="">Bu haftaya burs ekle…</option></select>
+        <button class="btn ana" id="haftayaEkleBtn">Ekle</button>
+        <button class="btn" id="haftaYeniBurs">+ Yeni Burs</button>
+      </div>
+      <h3 class="alt-baslik">Bu haftanın listesi</h3>
+      <div id="haftaListe" class="kartlar"></div>
+      <h3 class="alt-baslik">Son tarihi bu hafta olanlar</h3>
+      <div id="haftaSonTarih" class="kartlar"></div>
+    </section>
+
+    <!-- GÜNLÜK -->
+    <section id="gunluk" class="panel">
+      <div class="panel-bas">
+        <h2>Günlük Görevler</h2>
+        <div class="gezgin">
+          <button class="btn" id="oncekiGun">‹</button>
+          <input type="date" id="gunSec">
+          <button class="btn" id="sonrakiGun">›</button>
+          <button class="btn" id="bugun">Bugün</button>
+        </div>
+      </div>
+      <form id="gorevForm" class="ekle-satir">
+        <input id="gorevMetin" placeholder="Yeni görev (ör. transkript iste, motivasyon mektubu yaz)" required>
+        <select id="gorevBurs"><option value="">Burs (isteğe bağlı)</option></select>
+        <button class="btn ana">Ekle</button>
+      </form>
+      <div class="ilerleme-kutu">
+        <div class="ilerleme"><div id="ilerlemeCubuk"></div></div>
+        <p id="ilerlemeYazi" class="soluk"></p>
+      </div>
+      <ul id="gorevListe" class="gorevler"></ul>
+      <button class="btn" id="tasi" hidden>Dünden kalan bitmemiş görevleri bugüne taşı</button>
+
+      <div class="cumle-kutu">
+        <h3>📝 Günün cümleleri</h3>
+        <form id="cumleForm" class="cumle-form">
+          <input id="cumleMetin" placeholder="Bugün için bir cümle yaz…" required>
+          <button class="btn ana">Ekle</button>
+        </form>
+        <ul id="cumleListe" class="cumleler"></ul>
+      </div>
+    </section>
+  </main>
+
+  <footer class="alt">
+    <button class="btn kucuk" id="disaAktar">Yedek indir</button>
+    <label class="btn kucuk">Yedek yükle<input type="file" id="iceAktar" accept=".json" hidden></label>
+    <span class="soluk" id="yedekDurum"></span>
+  </footer>
+
+  <!-- BURS FORMU -->
+  <dialog id="bursDialog">
+    <form id="bursForm" method="dialog">
+      <h2 id="dialogBaslik">Burs Ekle</h2>
+      <label>Burs adı<input name="ad" required></label>
+      <label>Ülke<input name="ulke" list="ulkeOneri" placeholder="ör. Almanya" autocomplete="off"></label>
+      <datalist id="ulkeOneri"></datalist>
+      <label>Başvuru linki<input name="link" type="url" placeholder="https://…"></label>
+      <div class="foto-alan">
+        <span class="foto-etiket">Fotoğraf</span>
+        <div id="fotoBirak" class="foto-birak" tabindex="0" title="Tıkla, sonra Ctrl+V">
+          <img id="fotoOnizleme" class="onizleme" alt="" hidden>
+          <div id="fotoIpucu" class="foto-ipucu">
+            <span class="foto-ikon">📋</span>
+            Kopyaladığın fotoğrafı <b>Ctrl+V</b> ile yapıştır
+            <small>ya da buraya sürükleyip bırak</small>
+          </div>
+        </div>
+        <div class="foto-butonlar">
+          <button type="button" class="btn kucuk" id="fotoYapistir">📋 Panodan yapıştır</button>
+          <label class="btn kucuk">🖼️ Dosyadan seç<input name="fotoDosya" type="file" accept="image/*" hidden></label>
+          <button type="button" class="btn kucuk tehlike" id="fotoKaldir" hidden>Kaldır</button>
+        </div>
+        <small id="fotoMesaj" class="foto-mesaj"></small>
+      </div>
+      <label>Açıklama / notlar<textarea name="aciklama" rows="4" placeholder="Şartlar, istenen belgeler, miktar…"></textarea></label>
+      <div class="iki">
+        <label>Son başvuru tarihi<input name="sonTarih" type="date"></label>
+        <label>Durum<select name="durum"></select></label>
+      </div>
+      <label class="onay"><input name="buHaftaya" type="checkbox"> Görüntülenen haftanın listesine ekle</label>
+      <div class="dialog-alt">
+        <button type="button" class="btn" id="iptal">İptal</button>
+        <button class="btn ana" value="kaydet">Kaydet</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="bildirim" class="bildirim" hidden></div>
+
+  <!-- SABAH KARŞILAMA -->
+  <div id="selam" class="selam" hidden>
+    <div class="selam-kutu">
+      <div class="gunes" id="selamIkon">☀️</div>
+      <h2 id="selamBaslik">Günaydın Tajoo!</h2>
+      <p id="selamTarih" class="selam-tarih"></p>
+      <p id="selamOzet"></p>
+      <p id="selamSoz" class="soz"></p>
+      <button class="btn ana" id="selamKapat">Hadi başlayalım 💪</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
